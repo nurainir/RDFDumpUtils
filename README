@@ -1,3 +1,5 @@
 Sorting RDFDump
 ---------------
 In Ntriple and NQuad with [Hadoop](http://hadoop.apache.org/) and [Cascading](http://www.cascading.org/)
+If you don't have hadoop and cascading you can type 
+`sort k-1 filename.nt`
