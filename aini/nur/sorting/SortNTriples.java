@@ -1,7 +1,7 @@
 /**
  * Sorting Ntriples order by Subject, Predicate ascending
  * @author Nur Aini Rakhmawati
- * @since Oct 5, 2008
+ * @since Oct 5, 2011
  * @return Fields("subject", "predicate", "object" ) 
  */
 

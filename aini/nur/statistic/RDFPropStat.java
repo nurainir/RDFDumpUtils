@@ -1,7 +1,7 @@
 /**
  * Counting number of distinct subject and object as well as triples of each properties
  * @author Nur Aini Rakhmawati
- * @since Oct 5, 2008
+ * @since Oct 5, 2011
  * @return Fields( "predicate1", "propsub" ,"propob","triples") = predicate, distinct subject, distinct object, number of triples  
  */
 package aini.nur.statistic;

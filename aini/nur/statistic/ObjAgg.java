@@ -1,7 +1,7 @@
 /**
  * Counting number of distinct object and triples of each properties
  * @author Nur Aini Rakhmawati
- * @since Oct 5, 2008
+ * @since Oct 5, 2011
  * @return Fields("predicate", "propob" ) 
  */
 
