@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import aini.nur.parser.N3parser;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.operation.Identity;
@@ -44,7 +46,7 @@ public class RDFStructure {
 	    // only return type, coverage and weight 
 	    coveragepipe =    new Each( coveragepipe, new Fields( "type", "coverage" ,"weightcoverage"), new Identity() );
 	    
-	    Tap Result = new Lfs( new TextLine(), args[ 1 ]);
+	    Tap Result = new Lfs( new TextLine(), args[ 1 ]+"/structure");
 		  
 			final Flow countFlow = new FlowConnector().connect( NtriplesInput, Result,coveragepipe  );
 	        countFlow.start();

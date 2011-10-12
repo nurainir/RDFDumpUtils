@@ -24,7 +24,7 @@ public class Coverage extends BaseOperation implements Buffer
 
 	
 	public Coverage() {
-		super(1, new Fields("coverage","weightcoverage"));
+		super(1, new Fields("coverage","weightcoverage","triples"));
 		}
 
 	@Override
@@ -32,7 +32,7 @@ public class Coverage extends BaseOperation implements Buffer
 	
 		// group by type
 		Iterator<TupleEntry> arguments = bufferCall.getArgumentsIterator();
-		long predCountSum = 0;
+		long predCountSum = 0, triples=0;
 		int distPredicate=0;
 		int distInstance=0;
 		String lastpredicate ="-";
@@ -62,6 +62,7 @@ public class Coverage extends BaseOperation implements Buffer
 
 			lastpredicate = ptype;
 			lastinstance = instance;
+			triples++;
 		}
 
 		distInstance=instances.size();
@@ -74,6 +75,8 @@ public class Coverage extends BaseOperation implements Buffer
 			result.add(0);
 		// weight coverage
 		result.add(distPredicate + distInstance);
+		//triples
+		result.add(triples);
 		
 		bufferCall.getOutputCollector().add( result );
 

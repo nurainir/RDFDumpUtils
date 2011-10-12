@@ -5,7 +5,7 @@
  * @return Fields("subject", "predicate", "object" ) 
  */
 
-package aini.nur.structure;
+package aini.nur.parser;
 
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.NxParser;
