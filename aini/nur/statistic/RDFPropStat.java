@@ -61,7 +61,6 @@ public class RDFPropStat {
 	    //count Class
 	    // remove not RDFtype
 		Filter rdftype = new RegexFilter("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
-		//Not notrdftype = new Not(rdftype);
 	    //select distinct
 	    Pipe classpipe = new Pipe("class",pipe);
 	    classpipe = new Each (classpipe,new Fields("predicate"),rdftype);
@@ -153,7 +152,7 @@ public class RDFPropStat {
 	    			 iterator.close();
 	    			 
 	    			 out.write("subject :"+subject+"\n");
-	    			 out.write("predicate :"+object+"\n");
+	    			 out.write("object :"+object+"\n");
 	    			 out.write("class :"+classes+"\n");
 	    			 out.close();
 	    			   
