@@ -27,25 +27,37 @@ public class ObjAgg extends BaseOperation implements Buffer {
 	public void operate(FlowProcess arg0, BufferCall bufferCall) {
 		Iterator<TupleEntry> arguments = bufferCall.getArgumentsIterator();
 		StringBuilder sb = new StringBuilder();
+		String lastObj ="#";
 		int numbObj =0;
+		boolean subnul =false;
 		while( arguments.hasNext() )
 		{
 			TupleEntry cur =arguments.next();
 			String obj = cur.getString("ido");
-			if(obj != null)
+			String sub = cur.getString("ids");
+			if(sub!=null && obj != null && !lastObj.equalsIgnoreCase(obj))
 			{
 			if(arguments.hasNext())
 				sb.append(obj+' ');
 			else
 				sb.append(obj);
 			numbObj++;
+			lastObj = obj;
+			}
+			if(sub==null)
+			{
+				subnul=true;
+				break;
 			}
 		}
 		
+		if(!subnul)
+		{
 		Tuple result = new Tuple();
 		result.add(sb.toString());
 		result.add(numbObj);
 		bufferCall.getOutputCollector().add( result );
+		}
 		
 		}
 		

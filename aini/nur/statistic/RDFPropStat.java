@@ -14,14 +14,14 @@ import aini.nur.parser.N3parser;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
-import cascading.operation.Identity;
-import cascading.operation.regex.RegexSplitter;
-import cascading.pipe.CoGroup;
+import cascading.operation.Filter;
+import cascading.operation.aggregator.First;
+import cascading.operation.filter.Not;
+import cascading.operation.regex.RegexFilter;
 import cascading.pipe.Each;
 import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
-import cascading.pipe.cogroup.InnerJoin;
 import cascading.scheme.TextLine;
 import cascading.tap.Lfs;
 import cascading.tap.Tap;
@@ -34,34 +34,74 @@ public class RDFPropStat {
 	/**
 	 * @param args[0] input file / directory
 	 * @param args[1] output file / directory
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		Tap NtriplesInput =  new Lfs( new TextLine( new Fields( "offset", "line" ) ), args[ 0 ]);
-		// parse input by tab (\t) character
+		// parse Ntriple
 		Pipe pipe= new Pipe("ntriple");
 		pipe = new Each( pipe, new Fields( "line" ), new N3parser() );
 
-	    // count distinct subject
-	    Pipe subjectpipe = new Pipe("subject",pipe);
-	    subjectpipe = new GroupBy (subjectpipe,new Fields("predicate"),new Fields("subject"));
-		subjectpipe = new Every(subjectpipe, new PropAgg());
+	    // count distinct subject and object each properties
+	    Pipe proppipe = new Pipe("prop",pipe);
+	    proppipe = new GroupBy (proppipe,new Fields("predicate"),new Fields("subject"));
+	    proppipe = new Every(proppipe, new PropAgg());
 		
-			  // store in the result file
-		  Tap Result = new Lfs( new TextLine(), args[ 1 ]+"/prop");
-		  
-			final Flow countFlow = new FlowConnector().connect( NtriplesInput, Result,subjectpipe  );
-	        countFlow.start();
-	        countFlow.complete();
+	    // count distinct subject all dataset
+	    Pipe subpipe = new Pipe("subject",pipe);
+	    subpipe = new GroupBy (subpipe,new Fields("subject"));
+	    subpipe = new Every( subpipe, new Fields("subject"), new First(), Fields.RESULTS );
+	    
+	    // count distinct object all dataset
+	    Pipe objpipe = new Pipe("object",pipe);
+	    objpipe = new GroupBy (objpipe,new Fields("object"));
+	    objpipe = new Every( objpipe, new Fields("object"), new First(), Fields.RESULTS );
+	    
+	    //count Class
+	    // remove not RDFtype
+		Filter rdftype = new RegexFilter("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
+		//Not notrdftype = new Not(rdftype);
+	    //select distinct
+	    Pipe classpipe = new Pipe("class",pipe);
+	    classpipe = new Each (classpipe,new Fields("predicate"),rdftype);
+	    classpipe = new GroupBy (classpipe,new Fields("object"));
+	    classpipe = new Every( classpipe, new Fields("object"), new First(), Fields.RESULTS );
+	    
+	    
+	    // store properties
+		Tap prop = new Lfs( new TextLine(), args[ 1 ]+"/prop");
 		
-	        int i = 0;
-	        long ntriples =0, blanknode =0, uri =0, literal =0;
-	        
-	        try {
+		final Flow PFlow = new FlowConnector().connect( NtriplesInput, prop,proppipe  );
+	    PFlow.start();
+	    PFlow.complete();
+		
+	    //store subjects
+	    Tap sub = new Lfs( new TextLine(), args[ 1 ]+"/sub");
+	    final Flow SFlow = new FlowConnector().connect( NtriplesInput, sub,subpipe  );
+	    SFlow.start();
+	    SFlow.complete();
+	    
+	    //store objects
+	    Tap obj = new Lfs( new TextLine(), args[ 1 ]+"/obj");
+	    final Flow OFlow = new FlowConnector().connect( NtriplesInput, obj,objpipe  );
+	    OFlow.start();
+	    OFlow.complete();
+	    
+	    //store class
+	    Tap clas = new Lfs( new TextLine(), args[ 1 ]+"/class");
+	    final Flow CFlow = new FlowConnector().connect( NtriplesInput, clas,classpipe  );
+	    CFlow.start();
+	    CFlow.complete();
+	    
+	    int i = 0;
+	    long ntriples =0, blanknode =0, uri =0, literal =0,subject =0, object =0,classes =0;
+	    int entity=0;  
+	       
 	        	BufferedWriter out = new BufferedWriter(new FileWriter(args[1]+"/stat"));
-	        	TupleEntryIterator iterator = countFlow.openSink();
+	        	TupleEntryIterator iterator = PFlow.openSink();
 	        	double avgout =0, avgin =0;
-	        	int entity=0;
+	        	
 	        	
 	    			while (iterator.hasNext())
 	    			{
@@ -86,12 +126,37 @@ public class RDFPropStat {
 	    			 out.write("literal :"+literal+"\n");
 	    			 out.write("uri :"+uri+"\n");
 	    			 out.write("entity :"+entity+"\n");
+	    			
+	    			 iterator = SFlow.openSink();
+	    			 while (iterator.hasNext())
+		    			{
+	    				 subject++;
+	    				 iterator.next();
+		    			}
 	    			 
+	    			 iterator.close();
+	    			 
+	    			 iterator = OFlow.openSink();
+	    			 while (iterator.hasNext())
+		    			{
+	    				 object++;
+	    				 iterator.next();
+		    			}
+	    			 iterator.close();
+	    			 
+	    			 iterator = CFlow.openSink();
+	    			 while (iterator.hasNext())
+		    			{
+	    				 classes++;
+	    				 iterator.next();
+		    			}
+	    			 iterator.close();
+	    			 
+	    			 out.write("subject :"+subject+"\n");
+	    			 out.write("predicate :"+object+"\n");
+	    			 out.write("class :"+classes+"\n");
 	    			 out.close();
-	    	} catch (IOException e) {
-	    		// TODO Auto-generated catch block
-	    		e.printStackTrace();
-	    	}		   
+	    			   
 	        
 	}
 

@@ -13,3 +13,7 @@ RDFPropStat, an class based on cascading calculates the distinct subject, object
 Sructure Dataset
 -----------------
 Analyzes the structure of dataset by its coherence value
+
+Metis
+-----
+Coverting RDF to graph input for [Metis](http://http://glaros.dtc.umn.edu/gkhome/metis/metis/overview) 
